@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 776727604074.dkr.ecr.us-west-2.amazonaws.com
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - npm run build-production          
+      - docker build -t rae-reports-ui-production:laproduction .
+      - docker tag rae-reports-ui-production:laproduction 776727604074.dkr.ecr.us-west-2.amazonaws.com/rae-reports-ui-production:laproduction
+      - docker tag rae-reports-ui-production:laproduction 776727604074.dkr.ecr.us-west-2.amazonaws.com/rae-reports-ui-production:v$CODEBUILD_BUILD_NUMBER      
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push 776727604074.dkr.ecr.us-west-2.amazonaws.com/rae-reports-ui-production:latest
+      - docker push 776727604074.dkr.ecr.us-west-2.amazonaws.com/rae-reports-ui-production:v$CODEBUILD_BUILD_NUMBER
+
+

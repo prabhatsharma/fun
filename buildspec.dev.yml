@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 776727604074.dkr.ecr.us-west-2.amazonaws.com
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - npm install -g @aws-amplify/cli
+      - amplify logout --appId d2ou4d2cjsrmlu
+      - amplify pull --appId d2ou4d2cjsrmlu --envName dev
+      - npm install
+      - npm run build-dev          
+      - docker build -t rae-reports-ui-dev:latest .
+      - docker tag rae-reports-ui-dev:latest 776727604074.dkr.ecr.us-west-2.amazonaws.com/rae-reports-ui-dev:latest
+      - docker tag rae-reports-ui-dev:latest 776727604074.dkr.ecr.us-west-2.amazonaws.com/rae-reports-ui-dev:v$CODEBUILD_BUILD_NUMBER      
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push 776727604074.dkr.ecr.us-west-2.amazonaws.com/rae-reports-ui-dev:latest
+      - docker push 776727604074.dkr.ecr.us-west-2.amazonaws.com/rae-reports-ui-dev:v$CODEBUILD_BUILD_NUMBER
+
+
